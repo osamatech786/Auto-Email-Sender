@@ -9,6 +9,7 @@ import requests
 import msal
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 
 # Set page configuration with a favicon
 st.set_page_config(
@@ -17,6 +18,9 @@ st.set_page_config(
     layout="centered"  # "centered" or "wide"
 )
 
+# Load environment variables from .env file
+load_dotenv()
+
 # Fetch credentials from environment variables
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
@@ -24,6 +28,7 @@ TENANT_ID = os.getenv("TENANT_ID")
 DRIVE_ID = os.getenv("DRIVE_ID")
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
+SECRET = os.getenv("SECRET")
 
 # Authenticate and acquire an access token
 def acquire_access_token():
@@ -146,6 +151,11 @@ def main():
 
     st.divider()    
 
+    # Security
+    password = st.text_input("Enter password", type="password")
+    if password != SECRET:
+        st.stop()
+
     # Authentication
     access_token = acquire_access_token()
 
@@ -173,29 +183,35 @@ def main():
         selected_emails = []
 
     # Email Details
+    
     st.subheader("Email Details")
     subject = st.text_input("Email Subject", f"Pay time - {datetime.now().strftime('%B')} [Invoice Submission Reminder]")  # Current month
     body = st.text_area(
-        "Email Body",
-        "Dear {name},\n\nPlease submit your invoice via our new Invoice Submission Portal. \n\nPortal Link: https://invoice-v2.streamlit.app/  \n\nKindest Regards,\nKasia"
+    "Email Body",
+    """Dear {name},
+
+Please submit your invoice, expenses and timesheet (when applicable) via our new Invoice Submission Portal. It will be automatically submitted and verified. If we need to clarify or amend your invoice, we will get in touch. Should you have any questions about the new portal, please get in touch with me and I will help.
+
+To log in to the portal, you will need your Prevista email address and your UTR number (Unique Tax Reference number).
+If you don't have a UTR number or it's not working, please get in touch.
+
+Portal Link: https://invoice-v2.streamlit.app/ 
+
+Many thanks :)
+
+Kasia Kwiatkowska 
+M: (+34)679161506
+    """
     )
 
-    # Sender Credentials
-    st.subheader("Sender Email Credentials")
-    sender_email = st.text_input("Sender Email (e.g., yourname@prevista.co.uk)")
-    sender_password = st.text_input(
-        "Email Password",
-        type="password",
-        help="Enter your Outlook/Office365 email password."
-    )
 
     # Send Emails Button
     if st.button("Send Emails"):
-        if not all([sender_email, sender_password, selected_emails, subject, body]):
+        if not all([selected_emails, subject, body]):
             st.error("Please fill in all required fields.")
         else:
             for name, email in selected_emails:
-                send_email(sender_email, sender_password, name, email, subject, body)
+                send_email(EMAIL, PASSWORD, name, email, subject, body)
 
 if __name__ == "__main__":
     main()
