@@ -202,7 +202,7 @@ Many thanks :)
 Kasia Kwiatkowska 
 M: (+34)679161506
     """
-    )
+    , height=420)
 
 
     # Send Emails Button
